@@ -1,9 +1,10 @@
 const {Router} = require('express');
 const {sanoPostman} = require('../controllers/apiExecutor');
+const {responseMapper} = require('../controllers/responseMapping');
 const router = Router();
 
 router.use('/sanoPostman', async(req,res)=>{
-const {method, body:{url}, headers, headers:{authorization}, body, query} = req;
+const {method, body:{url, keys}, headers, headers:{authorization}, body, query} = req;
 if(!url){
     throw new Error(`Url is required for making request`)
 }
@@ -25,6 +26,8 @@ if(body){
     request.body = body;
 }
 const ree = await sanoPostman(method,url,request);
+const check = await responseMapper(keys, ree);
+console.log(check)
 return res.json(ree)
 })
 
