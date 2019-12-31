@@ -11,10 +11,8 @@ async function sanoPostman(method, url,request){
         config.headers = {
             'Authorization': request.auth
         }
-        console.log(config)
         if(method === 'GET'){
             const response = await axios.get(url,config);
-            console.log(response)
             return response.data;
         }
         if(method === 'POST'){

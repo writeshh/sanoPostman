@@ -1,5 +1,5 @@
 const {Router} = require('express');
-const {sanoPostman} = require('./apiExecutor');
+const {sanoPostman} = require('../controllers/apiExecutor');
 const router = Router();
 
 router.use('/sanoPostman', async(req,res)=>{

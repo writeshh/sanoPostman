@@ -3,7 +3,7 @@ const app = express();
 
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
-app.use('/', require('./routes'))
+app.use('/', require('./routes/routes'))
 
 app.use('/test',(req,res)=>{
     res.json({
