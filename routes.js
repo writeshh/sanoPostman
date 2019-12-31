@@ -3,11 +3,15 @@ const {sanoPostman} = require('./apiExecutor');
 const router = Router();
 
 router.use('/sanoPostman', async(req,res)=>{
-const {method, body:{url}, headers, body, query} = req;
+const {method, body:{url}, headers, headers:{authorization}, body, query} = req;
 if(!url){
     throw new Error(`Url is required for making request`)
 }
 const request = {};  
+
+if(authorization){
+    request.auth = authorization;
+}
 
 if(headers){
     request.headers = headers

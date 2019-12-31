@@ -3,14 +3,18 @@ const qs = require('querystring');
 
 async function sanoPostman(method, url,request){
     try{
-        const {headers, body} = request;
-        headers.host = 'partners.setbots.com'
-        const config = {
-            headers
+        const {headers, body, query} = request;
+        const config = {};
+        if(Object.keys(query).length>0){
+            config.params = query
+        }
+        config.headers = {
+            'Authorization': request.auth
         }
         console.log(config)
         if(method === 'GET'){
             const response = await axios.get(url,config);
+            console.log(response)
             return response.data;
         }
         if(method === 'POST'){
