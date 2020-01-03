@@ -5,8 +5,6 @@
 
  async function responseMapper(keys,response){
      try{
-         console.log(keys)
-         console.log(response[keys])
         return response[keys]
      } catch(err){
          throw new Error(`Error while mapping response from the key ${err}`)
