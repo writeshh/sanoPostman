@@ -1,5 +1,6 @@
 const axios = require('axios');
 const qs = require('querystring');
+const StatusCode = require('../library/statusCodes');
 
 async function sanoPostman(method, url,request){
     try{
@@ -14,13 +15,10 @@ async function sanoPostman(method, url,request){
         if(method === 'GET'){
             try{
             const response = await axios.get(url,config);
-            return response.data;
+            return StatusCode.sendSucessResponse('Sucess',response.data)
             }
             catch(err){
-                return {
-                    status: 405,
-                    msg: `Get Method not allowed ${err}`
-                }
+                return StatusCode.methodNotAllowed(`Get Method not allowed ${err}`)
             }
         }
         if(method === 'POST'){
@@ -29,10 +27,7 @@ async function sanoPostman(method, url,request){
             return response.data;
             }
             catch(err){
-                return {
-                    status: 405,
-                    msg: `Post Method not allowed ${err}`
-                }
+                return StatusCode.methodNotAllowed(`Post Method not allowed ${err}`)
             }
         }
     }
