@@ -1,7 +1,7 @@
-exports.sendSucessResponse = (msg,data)=>{
+exports.sendSucessResponse = (data)=>{
     return{
         status: 200,
-        msg,
+        type: 'Sucess',
         data
     }
 }
@@ -43,6 +43,14 @@ exports.notFound = (msg)=>{
     return{
         status: 404,
         type: 'Not Found',
+        msg
+    }
+}
+
+exports.created = (msg)=>{
+    return{
+        status: 201,
+        type: 'Created',
         msg
     }
 }

@@ -4,7 +4,7 @@ const {validateResponse} = require('../validations/responseValidator');
 const router = Router();
 
 router.use('/sanoPostman', async(req,res)=>{
-const {body:{url, keys}, headers, method, body, query} = req;
+const {body:{url}, headers, method, body, query} = req;
 if(!url){
     throw new Error(`Url is required for making request`)
 }

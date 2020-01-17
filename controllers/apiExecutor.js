@@ -1,5 +1,4 @@
 const axios = require('axios');
-const qs = require('querystring');
 const {sendSutiableHttpResponse} = require('../library/sendSutiableHttpResponse');
 
 async function sanoPostman(method, url,request){
@@ -23,19 +22,25 @@ async function sanoPostman(method, url,request){
         if(method === 'GET'){
             try{
             const response = await axios.get(url,config);
-            return sendSutiableHttpResponse(200,'Sucess',response.data)
+            return sendSutiableHttpResponse(response.status,response.data)
             }
             catch(err){
-               return sendSutiableHttpResponse(err.response.status,err.message)
+                if(err.response){
+                    return sendSutiableHttpResponse(err.response.status,err.message)
+                }
+                return sendSutiableHttpResponse(404,err)
             }
         }
         if(method === 'POST'){
             try{
-            const response = await axios.post(url, qs.stringify(body),config );
-            return StatusCode.sendSucessResponse('Sucess',response.data)
+            const response = await axios.post(url, body,config );
+            return sendSutiableHttpResponse(response.status,response.data)
             }
             catch(err){
+                if(err.response){
                 return sendSutiableHttpResponse(err.response.status,err.message)
+                }
+                return sendSutiableHttpResponse(404,err)
             }
         }
     }
