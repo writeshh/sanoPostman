@@ -9,9 +9,18 @@ async function sanoPostman(method, url,request){
         if(Object.keys(query).length>0){
             config.params = query
         }
-        // config.headers = {
-        //     'Authorization': request.auth
-        // }
+        delete headers.host;
+        delete headers.cookie;
+        delete headers.connection;
+        delete headers['user-agent'];
+        delete headers['postman-token'];
+        delete headers['content-length'];
+        delete headers['accept-encoding'];
+        delete headers['cache-control'];
+        config.headers = {
+             ... headers
+        }
+        console.log(config)
         if(method === 'GET'){
             try{
             const response = await axios.get(url,config);
@@ -24,7 +33,8 @@ async function sanoPostman(method, url,request){
         if(method === 'POST'){
             try{
             const response = await axios.post(url, qs.stringify(body),config );
-            return response.data;
+            return StatusCode.sendSucessResponse('Sucess',response.data)
+
             }
             catch(err){
                 return StatusCode.methodNotAllowed(`Post Method not allowed ${err}`)

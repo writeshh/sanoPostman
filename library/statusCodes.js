@@ -15,7 +15,7 @@ exports.methodNotAllowed = (msg)=>{
 
 exports.validationError = (msg) =>{
     return{
-        status: 400,
+        status: 609,//Custom validation Error Status Code
         type:'Validation Failed',
         msg
     }
