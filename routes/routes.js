@@ -26,12 +26,12 @@ if(body){
     request.body = body;
 }
 const ree = await sanoPostman(method,url,request);
-//const check = validateResponse(ree)
-// if(check){
-// if(check.status === 609){
-//     return res.json(check)
-// }
-// }
+const check = validateResponse(ree)
+if(check){
+if(check.status === 609){
+    return res.json(check)
+}
+}
 
 if(ree.status === 200){
     return res.json(ree)

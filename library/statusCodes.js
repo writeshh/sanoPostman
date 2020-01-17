@@ -14,11 +14,12 @@ exports.methodNotAllowed = (msg)=>{
     }
 }
 
-exports.validationError = (msg) =>{
+exports.validationError = (msg,data) =>{
     return{
         status: 609,//Custom validation Error Status Code
         type:'Validation Failed',
-        msg
+        msg,
+        data
     }
 }
 
