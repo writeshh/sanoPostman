@@ -4,7 +4,7 @@ const {validateResponse} = require('../validations/responseValidator');
 const router = Router();
 
 router.use('/sanoPostman', async(req,res)=>{
-const {body:{url, keys}, headers, method, headers:{authorization}, body, query} = req;
+const {body:{url, keys}, headers, method, body, query} = req;
 if(!url){
     throw new Error(`Url is required for making request`)
 }
@@ -13,10 +13,6 @@ if(!method){
     throw new Error(`Method is required for making request`)
 }
 const request = {};  
-
-if(authorization){
-    request.auth = authorization;
-}
 
 if(headers){
     request.headers = headers
@@ -30,7 +26,7 @@ if(body){
     request.body = body;
 }
 const ree = await sanoPostman(method,url,request);
-const check = validateResponse(ree)
+//const check = validateResponse(ree)
 // if(check){
 // if(check.status === 609){
 //     return res.json(check)

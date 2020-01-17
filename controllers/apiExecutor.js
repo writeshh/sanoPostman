@@ -1,6 +1,6 @@
 const axios = require('axios');
 const qs = require('querystring');
-const StatusCode = require('../library/statusCodes');
+const {sendSutiableHttpResponse} = require('../library/sendSutiableHttpResponse');
 
 async function sanoPostman(method, url,request){
     try{
@@ -20,24 +20,22 @@ async function sanoPostman(method, url,request){
         config.headers = {
              ... headers
         }
-        console.log(config)
         if(method === 'GET'){
             try{
             const response = await axios.get(url,config);
-            return StatusCode.sendSucessResponse('Sucess',response.data)
+            return sendSutiableHttpResponse(200,'Sucess',response.data)
             }
             catch(err){
-                return StatusCode.methodNotAllowed(`Get Method not allowed ${err}`)
+               return sendSutiableHttpResponse(err.response.status,err.message)
             }
         }
         if(method === 'POST'){
             try{
             const response = await axios.post(url, qs.stringify(body),config );
             return StatusCode.sendSucessResponse('Sucess',response.data)
-
             }
             catch(err){
-                return StatusCode.methodNotAllowed(`Post Method not allowed ${err}`)
+                return sendSutiableHttpResponse(err.response.status,err.message)
             }
         }
     }
