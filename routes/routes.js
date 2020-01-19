@@ -37,11 +37,7 @@ router.use('/sanoPostman', async (req, res) => {
     }
   }
 
-  if (ree.status === 200) {
-    return res.json(ree);
-  }
-
-  return res.status(ree.status).json(ree.msg);
+  return res.status(ree.status).json(ree);
 });
 
 module.exports = router;
