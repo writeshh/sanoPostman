@@ -26,16 +26,14 @@ function validateResponse(res) {
             if (!res.data.content.messages[0].type) {
               return StatusCodes.validationError(`Type is required`, res);
             }
-            if (res.data.content.messages[0].type) {
-              const check = message_types.includes(
-                res.data.content.messages[0].type
+            const check = message_types.includes(
+              res.data.content.messages[0].type
+            );
+            if (!check) {
+              return StatusCodes.validationError(
+                `Unsupported message Type`,
+                res
               );
-              if (!check) {
-                return StatusCodes.validationError(
-                  `Unsupported message Type`,
-                  res
-                );
-              }
             }
             return StatusCodes.validationError(`Message should be array`, res);
           }
