@@ -11,6 +11,7 @@ router.use('/sanoPostman', async (req, res) => {
     body,
     query
   } = req;
+  console.log(req.body)
   if (!url) {
     throw new Error(`Url is required for making request`);
   }
@@ -36,7 +37,6 @@ router.use('/sanoPostman', async (req, res) => {
       return res.json(check);
     }
   }
-
   return res.status(ree.status).json(ree);
 });
 

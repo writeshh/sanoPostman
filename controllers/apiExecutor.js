@@ -1,4 +1,5 @@
 const axios = require('axios');
+const qs = require('querystring');
 const {sendSutiableHttpResponse} = require('../library/sendSutiableHttpResponse');
 
 async function sanoPostman(method, url,request){
@@ -33,7 +34,13 @@ async function sanoPostman(method, url,request){
         }
         if(method === 'POST'){
             try{
-            const response = await axios.post(url, body,config );
+            let data;    
+            if(headers['content-type'] === 'application/json'){
+                data = body
+            } else{
+                data = qs.stringify(body)
+            }
+            const response = await axios.post(url, data,config );
             return sendSutiableHttpResponse(response.status,response.data)
             }
             catch(err){
