@@ -14,7 +14,7 @@ router.use('/sanoPostman', async (req, res) => {
 	console.log(req.body);
 
 	if (!url) {
-		console.log('"Error - " URL not found.');
+		console.log('Error: URL not found.');
 		return res.json({
 			status: 400,
 			msg: 'URL is required to make a successful request.',
@@ -22,7 +22,7 @@ router.use('/sanoPostman', async (req, res) => {
 	}
 
 	if (!method) {
-		console.log('"Error - " Method not found.');
+		console.log('Error: Method not found.');
 		return res.json({
 			status: 400,
 			msg: 'Method type is required to make a successful request.',
