@@ -1,366 +1,214 @@
-<<<<<<< HEAD
-const {
-  sendSutiableHttpResponse,
-} = require('../library/sendSutiableHttpResponse');
+const { sendSuitableHttpResponse } = require('../library/sendSuitableHttpResponse');
 
-const message_types = [
-  'text',
-  'image',
-  'video',
-  'audio',
-  'file',
-  'cards',
-  'list_item',
-  'attachment'
-];
-
+const message_types = ['text', 'image', 'video', 'audio', 'file', 'cards', 'list_item', 'attachment'];
 
 const MESSAGE_TYPES = {
-  TEXT : 'text'
-}
-const keyboard_types = [
-  'url',
-  'flow',
-  'call',
-  'share',
-  'node',
-  'flow',
-  'content',
-  'buy',
-  'dynamic_block_callback'
-]
+	TEXT: 'text',
+	ATTACHMENT: 'attachment',
+	// IMAGE: 'image',
+	MEDIA: 'audio' || 'video',
+	FILE: 'file',
+	CARDS: 'cards',
+	LIST: 'list_item',
+	OTHER: 'other',
+};
+const keyboard_types = ['url', 'flow', 'call', 'share', 'node', 'flow', 'content', 'buy', 'dynamic_block_callback'];
 
-const supported_images = [
-  'png',
-  'jpg',
-  'jpeg',
-]
+const supported_images = ['png', 'jpg', 'jpeg'];
 
-const supported_media = [
-  'mp3',
-  'ogg',
-  'mpeg',
-  'mp4',
-  'avi',
-]
+const supported_media = ['mp3', 'ogg', 'mpeg', 'mp4', 'avi'];
 
 const mime_types = [
-  'audio/mp3' || 'audio/mpeg3',
-  'audio/ogg',
-  'audio/mpeg',
-  'validation/mpeg',
-  'video/mp4',
-  'video/avi',
-  'video/mpeg'
-]
+	'audio/mp3' || 'audio/mpeg3',
+	'audio/ogg',
+	'audio/mpeg',
+	'validation/mpeg',
+	'video/mp4',
+	'video/avi',
+	'video/mpeg',
+];
 
 function validateResponse(res) {
-  const ValidationResponseHandler = validationResponseHandler(res);
- const error =  ValidationResponseHandler.handleResponse();
-  try {
-    if (res.data) {
+	const ValidationResponseHandler = validationResponseHandler(res);
+	const error = ValidationResponseHandler.handleResponse();
 
-    
-      // if (!res.data.version) {
-      //   return sendSutiableHttpResponse(406,res,'Version is required');
-      // }
-      // if (res.data.version !== 'v2') {
-      //   return sendSutiableHttpResponse(406,res,'Version mismatched');
-      // }
+	if (Object.getOwnPropertyNames(error).length !== 0) {
+		return sendSuitableHttpResponse(406, res, error);
+	} else {
+		return;
+	}
+}
 
-      
-      // check for content 
-      if(!res.data.content){
-        return sendSutiableHttpResponse(406,res,'Content is required')
-      }
-      
-      // check for message types
-      const check = message_types.includes(res.data.type);
-      if(!check){
-        return sendSutiableHttpResponse(406,res,`Type should be one of the following ${message_types}`)
-      } 
+function validationResponseHandler(res) {
+	const { data } = res;
+	const error = {};
 
-
-      
-      // Check if data -> content -> type is image
-      if (res.data.content.type == "image") {
-
-        const validation = validateImage(res.data.content.data, res);
-
-        if (!validation.valid) {
-          return sendSutiableHttpResponse(406, res, validation.errors);
-        }
-      }
-
-      // Check if data -> content -> type is audio or video
-      if (res.data.content.type == "audio" || res.data.content.type == "video") {
-
-        const validation = validateMedia(res.data.content.data, res);
-
-        if (!validation.valid) {
-          return sendSutiableHttpResponse(406, res, validation.errors);
-        }
-      }
-
-      // Check if data contains button
-      if(res.data.keyboard){
-        if(!Array.isArray(res.data.keyboard)){
-          return sendSutiableHttpResponse(406,res,'Keyboard should be of Type Array')
-        }
-        
-        const validation = validateKeyboard(res.data.keyboard,res)
-
-        if(!validation.valid){
-          return sendSutiableHttpResponse(406,res,validation.errors)
-        }
-      }
-    }
-  } catch (err) {
-    throw new Error(`Error while validating the response ${err}`);
-  }
-=======
-const StatusCodes = require('../library/statusCodes');
-const message_types = ['text', 'image', 'video', 'audio', 'file', 'cards', 'list'];
-function validateResponse(res) {
-	try {
-		if (res.data) {
-			if (!res.data.version) {
-				return StatusCodes.validationError(`Invalid Payload message Version is required`, res);
-			}
-
-			if (res.data.version !== 'v2') {
-				return StatusCodes.validationError(`Invalid Version`, res);
-			}
-			if (res.data.content) {
-				if (res.data.content.messages) {
-					if (Array.isArray(res.data.content.messages)) {
-						if (!res.data.content.messages[0].type) {
-							return StatusCodes.validationError(`Type is required`, res);
-						}
-						const check = message_types.includes(res.data.content.messages[0].type);
-						if (!check) {
-							return StatusCodes.validationError(`Unsupported message Type`, res);
-						}
-					} else {
-						return StatusCodes.validationError(`Message should be array`, res);
-					}
-				} else {
-					return StatusCodes.validationError(`Message is required`, res);
-				}
-			} else {
-				return StatusCodes.validationError(`Content is required`, res);
-			}
+	function handleContentDataForImage(contentImageData) {
+		if (!(contentImageData.img_big && contentImageData.img_small)) {
+			error.content.push({
+				img_big: 'required',
+				img_small: 'required',
+			});
 		}
-	} catch (err) {
-		console.log(`Error while validating the response ${err}`);
-		return res.json({
-			status: 500,
-			msg: 'Server Error',
+	}
+
+	function handleContentDataForFile(contentFileData) {
+		if (!contentFileData) {
+			error.content = 'File is required';
+		}
+
+		if (!contentFileData.title) {
+			error.title = 'Title is required';
+		}
+
+		if (!supported_media.includes(contentFileData.file.split('.').pop())) {
+			error.mime = `Attachment format can be of only following types ${supported_media}`;
+		}
+	}
+
+	function handleContentData(contentData) {
+		error.content = [];
+		if (contentData.type === 'image') {
+			handleContentDataForImage(contentData);
+		}
+		if (contentData.type === 'file') {
+			handleContentDataForFile(contentData);
+		}
+	}
+
+	function handleContent(content) {
+		if (!content) {
+			error.content = 'Content is required!';
+		}
+		if (content.data) {
+			handleContentData(content.data);
+		}
+	}
+
+	function handleContentsArray(contentsArray) {
+		error.contents = [];
+		if (!contentsArray) {
+			error.contents = 'Contents is required.';
+		}
+	}
+
+	function handleElements(elements) {
+		error.elements = [];
+		let index = 0;
+		elements.forEach(element => {
+			handleContent(element);
+			error.elements.push(error.content);
+			handleKeyboardArr(element);
+			error.elements.push(error.keyboards);
+			index++;
 		});
 	}
->>>>>>> 091b3b66bd97d002f3816b40854cee8fd6675b02
-}
 
-// Buttons validation
-function validateKeyboard(keyboards){
-  try{
-    let errors = [];
-    Promise.all(keyboards.map(i=>{
-      if(!keyboard_types.includes(i.type)){
-        errors.push(`Keyboards can be of only following types ${keyboard_types}`)
-      }
+	function handleKeyboardArr(keyboards) {
+		if (keyboards.length > 0) {
+			error.keyboards = [];
 
-      if(!i.caption){
-        errors.push(`Caption can't be empty`)
-      }
+			if (!Array.isArray(keyboards)) {
+				error.keyboards.push('Keyboards must be an array.');
+			}
+			if (keyboards && keyboards.length > 3) {
+				error.keyboards.push('Keyboards must not be more than 3.');
+			}
 
-      if(i.type === 'url'){
-        if(!i.url){
-          errors.push(`Url can't be empty in the type of URL`)
-        }
-      }
+			let index = 0;
+			keyboards.forEach(keyboardElem => {
+				if (!keyboardElem.caption) {
+					error.keyboards[index] = [index] + ' => Caption is required';
+				}
+				handleIndiKeyboard(keyboardElem, index);
+				index++;
+			});
+		}
+	}
 
-      if(i.type === 'call'){
-        if(!i.phone){
-          errors.push(`Phone can't be empty in the type call`)
-        }
-      }
+	function handleIndiKeyboard(keyboard, index) {
+		if (!keyboard_types.includes(keyboard.type)) {
+			error.keyboards.push(`[ ${index} ] => Keyboards can be of only following types ${keyboard_types}`);
+		}
 
-    }))
-    if(errors.length>0){
-    return {
-      valid: false,
-      errors
-    }
-  }
-  return {
-    valid: true
-  }
-  }
-  catch(err){
-    throw new Error(`Error while validating Button ${err}`)
-  }
-}
+		// if keyboard type is URL
+		if (keyboard.type == 'url') {
+			if (!keyboard.url) {
+				error.keyboards.push([index] + ' => URL is required');
+			}
 
-// Image Validation
-function validateImage(image){
-  try{
-    let errors = []
-    
-    if(message_types.includes(image.type)){
-      errors.push(`Images can be of only following types ${message_types}`)
-    }
-    
-    if(!supported_images.includes(image.img_big.split('.').pop() && image.img_big.split('.').pop())){
-      errors.push(`The file extension for image must be the following types ${ supported_images }.`);
-    }
+			if (!keyboard.webview_size) {
+				error.keyboards[index] = [index] + ' => Webview size is required.';
+			}
+		}
 
-    if(image.title){
-      errors.push('The title of the image is required.');
-    }
+		// if keyboard type is content
+		if (keyboard.type == 'content') {
+			if (!keyboard._content_oid) {
+				error.keyboards[index] = [index] + ' => Content OID is required';
+			}
+		}
 
-    if (!(image.img_small && image.img_big)) {
-      errors.push('Both small and big images are required.');
-    }
-    
-    if (errors.length>0){
-      return {
-        valid: false,
-        errors
-      }
-    }
+		// if keyboard type is call
+		if (keyboard.type == 'call') {
+			if (!keyboard.phone) {
+				error.keyboards.push([index] + ' => Phone number is required');
+			}
+		}
+	}
 
-    return {
-      valid: true
-    }
-  }
-  catch (err) {
-    throw new Error(`Error while validating Images ${err}`)
-  }
-}
+	function handleResponseForText(textData) {
+		handleContent(textData.content);
+		handleKeyboardArr(textData.keyboard);
+	}
 
-// Audio/Video Validation
-function validateMedia(media) {
-  try {
-    let errors = [];
+	function handleResponseForImage(imageData) {
+		handleContent(imageData.content);
+		handleKeyboardArr(imageData.keyboard);
+	}
 
-    if (media.type != "file") {
-      errors.push('The media format must be file');
-    }
+	function handleResponseForMedia(mediaData) {
+		handleContent(mediaData.content);
+		handleKeyboardArr(mediaData.keyboard);
+	}
 
-    if(!mime_types.includes(media.mime)) {
-      errors.push(`Media files must be the following types ${ mime_types }.`)
-    }
+	function handleResponseForList(listData) {
+		handleContentsArray(listData.contents);
+	}
 
-    if (!supported_media.includes(media.file.split('.').pop())) {
-      errors.push(`Media files must be the following types ${ supported_media }.`);
-    }
+	function handleResponseForCards(cardData) {
+		handleElements(cardData);
+	}
 
-    if (!media.title) {
-      errors.push('The title for the media file is required.');
-    }
+	function handleResponse() {
+		if (data.type === MESSAGE_TYPES.TEXT) {
+			handleResponseForText(data);
+		}
 
-    if (errors.length>0){
-      return {
-        valid: false,
-        errors
-      }
-    }
+		if (data.type === MESSAGE_TYPES.ATTACHMENT) {
+			handleResponseForImage(data);
+		}
 
-    return {
-      valid: true
-    }
+		if (data.type === MESSAGE_TYPES.MEDIA) {
+			handleResponseForMedia(data);
+		}
 
-  } catch (err) {
-    throw new Error(`Error while validating Media ${err}`)
-  }
-}
+		if (data.type === MESSAGE_TYPES.OTHER) {
+			handleResponseForList(data);
+		}
 
+		if (data.type === MESSAGE_TYPES.CARDS) {
+			handleResponseForCards(data.elements);
+		}
+		console.log(error);
 
+		return error;
+	}
 
-function validationResponseHandler (res){
-  const {data} = res;
-  const error = {};
-
-  function handleContentDataForiamge(){
-    //
-  }
-  function handleContentData(contentData){
-    if(contentData.type === 'image'){
-      //handle content data for image 
-    }
-    if(contentData.type ==' videos') {
-    }
-  }
-
-  function handleContent(content){
-    if(!content.text){
-      error.content = 'Content is required !';
-    }
-
-    if(content.text) {
-      if(!content.text.value){
-        error.content = {};
-        error.content.value = 'value is required !';
-      }
-    }
-
-    if(content.data){
-      handleContentData();
-    }
-  }
-
-  function handleKeyboardArr(keyboards){
-    if(keyboards && keyboards.length > 3){
-      error.keyboards = 'you have more keyboard';
-    }
-    if(keyboards && keyboards.length < 3){
-      index = 0;
-      keyboards.forEach(keyboardElem => {
-          handleIndiKeyboard(keyboardElem, index);
-          index ++;
-      });
-    }
-  }
-
-  function handleIndiKeyboard(keyboard, index){
-    if(keyboard.type == 'url'){
-      if(!keyboard.url) {
-        error.keyboards = [];
-        error.keyboards[2] = 'url is required';
-      }
-    }
-  } 
-
-
-  function handleResponseForText(textData){
-    handleContent(textData.content);
-    handleKeyboardArr(textData.keyboard);
-  }
-
-
-  function handleResponse(){
-    if(data.type === MESSAGE_TYPES.TEXT){
-      handleResponseForText(data);
-    }
-  
-    if(data.type=== 'cards'){
-      handleResponseForCards(data);
-   
-    }
-    console.log(error)
-    return error;
-  }
-
-  return {
-    handleResponse
-  }
-  
+	return {
+		handleResponse,
+	};
 }
 module.exports = {
-<<<<<<< HEAD
-  validateResponse,
-=======
 	validateResponse,
->>>>>>> 091b3b66bd97d002f3816b40854cee8fd6675b02
 };
