@@ -9,9 +9,11 @@ router.use('/sanoPostman', async (req, res) => {
     headers,
     method,
     body,
-    query
+    params,
+    query,
+    _parsedUrl
   } = req;
-  console.log(req.body)
+ 
   if (!url) {
     throw new Error(`Url is required for making request`);
   }
@@ -29,14 +31,34 @@ router.use('/sanoPostman', async (req, res) => {
     request.query = query;
   }
 
+  if(params) {
+    request.params = params
+  }
+
   request.body = body;
   const ree = await sanoPostman(method, url, request);
+  
   const check = validateResponse(ree);
   if (check) {
-    if (check.status === 609) {
+    if (check.status === 406) {
       return res.json(check);
     }
   }
+
+  delete body.url;
+
+  const requestObjectNeeded={
+    headers,
+    method,
+    body,
+    query,
+    params,
+    // _parsedUrl,
+    url,
+    type: 'request-type'
+  }
+
+  ree.request = requestObjectNeeded
   return res.status(ree.status).json(ree);
 });
 

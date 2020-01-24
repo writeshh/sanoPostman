@@ -1,42 +1,25 @@
-const StatusCode = require('./statusCodes');
+const {STATUS_CODES} = require('http');
 
-function sendSutiableHttpResponse(code,msg,data){
+function sendSutiableHttpResponse(code,data,msg){
     try{
-        if(code === 200){
-            return StatusCode.sendSucessResponse(msg,data)
-        }
-        if(code === 405){
-            return StatusCode.methodNotAllowed(msg)
-        }
-        if(code === 609){
-            return StatusCode.validationError(msg)
-        }
-        if(code === 401){
-            return StatusCode.unauthorizedUser(msg)
-        }
-        if(code === 403){
-            return StatusCode.forbidden(msg,data)
-        }
-        if(code === 404){
-            return StatusCode.notFound(msg)
-        }
-        if(code === 201){
-            return StatusCode.created(msg)
-        }
-        if(![200,405,609,401,403,404,201].includes(code)){
-            return{
-                status: code,
-                msg,
-                data
+        for(let codes in STATUS_CODES){
+            if(Number(codes)===code){
+                return{
+                    status: Number(codes),
+                    statusText: STATUS_CODES[codes],
+                    data,
+                    msg
+                }
             }
-
         }
     }
     catch(err){
-        throw new Error(`Error while sending sutiable error response ${err}`)
+        throw new Error(`Error while sending suitable HTTP response ${err}`)
     }
 }
 
-module.exports = {
+
+
+module.exports={
     sendSutiableHttpResponse
 }
