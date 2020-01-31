@@ -8,7 +8,7 @@ function sendSuitableHttpResponse(code, data, msg) {
 					status: Number(codes),
 					statusText: STATUS_CODES[codes],
 					data,
-					msg,
+					validationErrors: msg,
 				};
 			}
 		}
