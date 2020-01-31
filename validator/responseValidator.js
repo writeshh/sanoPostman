@@ -29,11 +29,16 @@ const supported_media = ['mp3', 'ogg', 'mpeg', 'mp4', 'avi'];
  * return nothing if errors are found
  */
 function validateResponse(res) {
-	const ValidationResponseHandler = validationResponseHandler(res);
-	const error = ValidationResponseHandler.handleResponse();
+	try {
+		const ValidationResponseHandler = validationResponseHandler(res);
+		const error = ValidationResponseHandler.handleResponse();
 
-	if (Object.getOwnPropertyNames(error).length > 0) {
-		return sendSuitableHttpResponse(406, res, error);
+		if (Object.getOwnPropertyNames(error).length > 0) {
+			return sendSuitableHttpResponse(406, res, error);
+		}
+	} catch (err) {
+		console.log(err);
+		return sendSuitableHttpResponse(406, err);
 	}
 }
 
@@ -87,6 +92,7 @@ function validationResponseHandler(res) {
 	 *
 	 */
 	function handleContentDataForElements(contentElementData) {
+		console.log(contentElementData);
 		if (!contentElementData) {
 			error.content.push('Card cannot be empty.');
 		}
@@ -95,10 +101,21 @@ function validationResponseHandler(res) {
 			error.content.push('Image is required');
 		}
 
-		if (!contentElementData.title) {
+		if (!contentElementData.content.title) {
 			error.content.push('Title is required');
 		}
 
+		if (contentElementData.content.title) {
+			if (contentElementData.content.title.length > 640) {
+				error.content.push('Max number of Character is 640 for title');
+			}
+		}
+
+		if (contentElementData.content.subtitle) {
+			if (contentElementData.content.subtitle.length > 640) {
+				error.content.push('Max number of Character is 640 for subtitle');
+			}
+		}
 		if (contentElementData.image) {
 			handleContentDataForImage(contentElementData.image);
 		}
@@ -111,6 +128,7 @@ function validationResponseHandler(res) {
 	 */
 	function handleContentData(contentData) {
 		error.content = [];
+
 		if (contentData.type === MESSAGE_TYPES.IMAGE) {
 			handleContentDataForImage(contentData);
 		}
@@ -132,6 +150,13 @@ function validationResponseHandler(res) {
 		if (!content) {
 			error.content = 'Content is required!';
 		}
+
+		if (content.text) {
+			if (content.text.length > 640) {
+				error.text = 'Max number of Character is 640 for texts';
+			}
+		}
+
 		if (content.data) {
 			handleContentData(content.data);
 		}
@@ -184,40 +209,63 @@ function validationResponseHandler(res) {
 	 * @param {*} index - index of the keyboards array
 	 */
 	function handleIndividualKeyboard(keyboard, index) {
-		if (!keyboard_types.includes(keyboard.type)) {
-			error.keyboards.push(`[ ${index} ] => Keyboards can be of only following types ${keyboard_types}`);
-		}
-
-		// if keyboard type is URL
-		if (keyboard.type == 'url') {
-			if (!keyboard.url) {
-				error.keyboards.push([index] + ' => URL is required');
+		try {
+			if (!keyboard_types.includes(keyboard.type)) {
+				error.keyboards.push(`[ ${index} ] => Keyboards can be of only following types ${keyboard_types}`);
 			}
 
-			if (!keyboard.webview_size) {
-				error.keyboards.push([index] + ' => Webview size is required.');
-			}
-		}
-
-		// if keyboard type is content
-		if (keyboard.type == 'content') {
-			if (!keyboard._content_oid) {
-				error.keyboards.push([index] + ' => Content OID is required');
-			}
-		}
-
-		// if keyboard type is call
-		if (keyboard.type == 'call') {
-			if (!keyboard.phone) {
-				error.keyboards.push([index] + ' => Phone number is required');
+			if (keyboard.caption.length > 20) {
+				error.keyboards.push(`[ ${index} ] => Max characters should be less than 20`);
 			}
 
-			if (keyboard.phone) {
-				if (keyboard.phone !== '@"^(+[0-9]{9})$"') {
-					error.keyboards.push('Not valid phone number');
+			// if keyboard type is URL
+			if (keyboard.type == 'url') {
+				const urlRegex = new RegExp(
+					/[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/gi,
+				);
+				// validation of regex at regexr.com/4tbhv
+
+				if (!keyboard.url) {
+					error.keyboards.push(`[ ${index} ] => URL is required`);
 				}
-				// error.keyboards
+
+				if (!keyboard.webview_size) {
+					error.keyboards.push(`[ ${index} ] => Webview size is required.`);
+				}
+
+				if (keyboard.url) {
+					if (!keyboard.url.match(urlRegex)) {
+						error.keyboards.push(` [ ${index} ] => URL format is is not valid.`);
+					}
+				}
 			}
+
+			// if keyboard type is content
+			if (keyboard.type == 'content') {
+				if (!keyboard._content_oid) {
+					error.keyboards.push(`[ ${index} ] => Content OID is required`);
+				}
+			}
+
+			// if keyboard type is call
+			if (keyboard.type == 'call') {
+				const phoneRegex = new RegExp(
+					/(\+?( |-|\.)?\d{1,4}( |-|\.)?)?(\(?\d{3}\)?|\d{3})( |-|\.)?(\d{3}( |-|\.)?\d{4})/g,
+				);
+				// Break down of regex at: regexr.com/4tbhd
+
+				if (!keyboard.phone) {
+					error.keyboards.push(`[ ${index} ] => Phone number is required`);
+				}
+
+				if (keyboard.phone) {
+					if (!keyboard.phone.match(phoneRegex)) {
+						error.keyboards.push(` [ ${index} ] => Not a valid phone number`);
+					}
+				}
+			}
+		} catch (err) {
+			console.log(err);
 		}
 	}
 
