@@ -10,7 +10,9 @@ const MESSAGE_TYPES = {
 	IMAGE: 'image',
 	MEDIA: 'audio' || 'video',
 	FILE: 'file',
+	DELAY: 'delay',
 	CARDS: 'cards',
+	CARD: 'card',
 	LIST: 'list',
 	OTHER: 'other',
 };
@@ -85,6 +87,32 @@ function validationResponseHandler(res) {
 		}
 	}
 
+	function handleContentDataForDelay(contentDelayData) {
+		error.delay = [];
+
+		if (!contentDelayData) {
+			error.delay.push('Delay is required');
+		}
+
+		if (!contentDelayData.time) {
+			error.delay.push('Time is required');
+		}
+
+		if (contentDelayData.time) {
+			if (contentDelayData.time > 15) {
+				error.delay.push('Max time is 15 seconds');
+			}
+		}
+
+		if (typeof show_typing !== 'boolean') {
+			error.delay.push('Show typing should either be true or false');
+		}
+
+		if (error.delay.length === 0) {
+			delete error.delay;
+		}
+	}
+
 	/**
 	 *
 	 * @param {*} contentElementData - object
@@ -92,7 +120,6 @@ function validationResponseHandler(res) {
 	 *
 	 */
 	function handleContentDataForElements(contentElementData) {
-		console.log(contentElementData);
 		if (!contentElementData) {
 			error.content.push('Card cannot be empty.');
 		}
@@ -135,9 +162,13 @@ function validationResponseHandler(res) {
 		if (contentData.type === MESSAGE_TYPES.FILE) {
 			handleContentDataForFile(contentData);
 		}
-		if (contentData.type === 'card' || contentData.type === 'list') {
+		if (contentData.type === MESSAGE_TYPES.CARD || contentData.type === MESSAGE_TYPES.LIST) {
 			handleContentDataForElements(contentData);
 			error.content.length == 0 ? delete error.content : '';
+		}
+
+		if (error.content.length === 0) {
+			delete error.content;
 		}
 	}
 
@@ -152,8 +183,12 @@ function validationResponseHandler(res) {
 		}
 
 		if (content.text) {
+			if (content.text.length < 0) {
+				error.text = 'Text cannot be empty';
+			}
+
 			if (content.text.length > 640) {
-				error.text = 'Max number of Character is 640 for texts';
+				error.text = 'Max number of Character is 640 for texts.';
 			}
 		}
 
@@ -275,25 +310,29 @@ function validationResponseHandler(res) {
 	 */
 	function handleResponseForText(textData) {
 		handleContent(textData.content);
+		if (textData.quick_replies) {
+			handleKeyboards(textData.buttons);
+		}
 		handleKeyboards(textData.keyboard);
 	}
 
 	/**
 	 *
-	 * @param {*} imageData
+	 * @param {*} attachmentData
 	 */
-	function handleResponseForImage(imageData) {
-		handleContent(imageData.content);
-		handleKeyboards(imageData.keyboard);
+	function handleResponseForAttachment(attachmentData) {
+		console.log(attachmentData);
+
+		handleContent(attachmentData.content);
+		handleKeyboards(attachmentData.keyboard);
 	}
 
 	/**
 	 *
-	 * @param {*} mediaData
+	 * @param {*} delayData
 	 */
-	function handleResponseForMedia(mediaData) {
-		handleContent(mediaData.content);
-		handleKeyboards(mediaData.keyboard);
+	function handleResponseForDelay(delayData) {
+		handleContentDataForDelay(delayData);
 	}
 
 	/**
@@ -315,7 +354,11 @@ function validationResponseHandler(res) {
 		}
 
 		if (data.type === MESSAGE_TYPES.ATTACHMENT) {
-			handleResponseForImage(data);
+			handleResponseForAttachment(data);
+		}
+
+		if (data.type === MESSAGE_TYPES.DELAY) {
+			handleResponseForDelay(data);
 		}
 
 		if (data.type === MESSAGE_TYPES.CARDS) {
