@@ -1,6 +1,6 @@
 # sanoPostman
 
-A small (sano) Postman with limited features.
+A API validator and response mapper tool, in other words a small (sano) Postman with limited features.
 
 ## Getting Started
 
